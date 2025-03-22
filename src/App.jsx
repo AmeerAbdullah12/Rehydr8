@@ -1,16 +1,17 @@
 "use client"
 
 import { useRef, useState, useEffect } from "react"
-import { ArrowDown, Droplets, Mail, MapPin, Menu, Phone, X, Instagram } from "lucide-react"
+import { ArrowDown, Droplets, Mail, MapPin, Menu, Phone, X, Instagram, Facebook } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const [activeProductIndex, setActiveProductIndex] = useState(0)
+  const productContainerRef = useRef(null)
+  const productRefs = useRef([])
 
   const homeRef = useRef(null)
   const aboutRef = useRef(null)
@@ -30,6 +31,43 @@ export default function Home() {
       window.removeEventListener("resize", checkIfMobile)
     }
   }, [])
+
+  // Track which product is in the center of the viewport
+  useEffect(() => {
+    if (!productContainerRef.current || !isMobile) return
+
+    const handleScroll = () => {
+      const container = productContainerRef.current
+      const containerCenter = container.offsetLeft + container.offsetWidth / 2
+
+      let closestIndex = 0
+      let closestDistance = Number.POSITIVE_INFINITY
+
+      productRefs.current.forEach((ref, index) => {
+        if (!ref) return
+        const rect = ref.getBoundingClientRect()
+        const cardCenter = rect.left + rect.width / 2
+        const distance = Math.abs(cardCenter - containerCenter)
+
+        if (distance < closestDistance) {
+          closestDistance = distance
+          closestIndex = index
+        }
+      })
+
+      setActiveProductIndex(closestIndex)
+    }
+
+    const container = productContainerRef.current
+    container.addEventListener("scroll", handleScroll)
+
+    // Initial check
+    handleScroll()
+
+    return () => {
+      container.removeEventListener("scroll", handleScroll)
+    }
+  }, [isMobile])
 
   const scrollToSection = (ref) => {
     if (ref.current) {
@@ -157,9 +195,9 @@ export default function Home() {
             <div className="w-full md:w-1/2 order-2 md:order-1">
               <h3 className="text-2xl md:text-3xl font-semibold text-sky-800 mb-4">Our Story</h3>
               <p className="text-sky-700 mb-6 text-base md:text-lg">
-                Rehydr8, Alkaline Mineral Water, Started by Nova Beverages in 2020,  has been committed to bringing the purest mineral water to your table. Our
-                journey began with a simple mission: to share the natural goodness of pristine mountain springs with the
-                world.
+                Rehydr8, Alkaline Mineral Water, Started by Nova Beverages in 2020, has been committed to bringing the
+                purest mineral water to your table. Our journey began with a simple mission: to share the natural
+                goodness of pristine mountain springs with the world.
               </p>
               <p className="text-sky-700 mb-6 text-base md:text-lg">
                 We take pride in our sustainable practices and minimal environmental footprint. Our bottling facility
@@ -213,22 +251,25 @@ export default function Home() {
           <div className="w-24 h-1 bg-sky-500 mx-auto mb-8 md:mb-12"></div>
 
           {/* Mobile Horizontal Scrollable Products */}
-          <div className="md:hidden overflow-x-auto pb-6 -mx-4 px-4 snap-x snap-mandatory">
+          <div ref={productContainerRef} className="md:hidden overflow-x-auto pb-6 -mx-4 px-4 snap-x snap-mandatory">
             <div className="flex gap-4 w-max">
               {/* Product 1 */}
-              <div className="w-72 flex-shrink-0 snap-center">
-                <Card className="bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:translate-y-[-8px]">
+              <div ref={(el) => (productRefs.current[0] = el)} className="w-72 flex-shrink-0 snap-center">
+                <Card
+                  className={`bg-white/80 backdrop-blur-sm transition-all duration-300 overflow-hidden ${
+                    activeProductIndex === 0
+                      ? "transform scale-105 shadow-2xl z-10"
+                      : "transform scale-95 opacity-80 shadow-xl"
+                  }`}
+                >
                   <div className="relative h-64">
-                    <img
-                      src="/500mithoutBG.png"
-                      alt="Natural Spring Water"
-                      className="w-full h-full object-contain"
-                    />
+                    <img src="/500mithoutBG.png" alt="Natural Spring Water" className="w-full h-full object-contain" />
                   </div>
                   <CardContent className="p-6">
                     <h3 className="text-xl font-semibold text-sky-800 mb-2">Rehydr8 500 ml</h3>
                     <p className="text-sky-600 mb-4">
-                      Our specialized water in 500 ml packing, sourced from pristine mountain springs. Perfect for everyday hydration.
+                      Our specialized water in 500 ml packing, sourced from pristine mountain springs. Perfect for
+                      everyday hydration.
                     </p>
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-bold text-sky-900">Rs. 50</span>
@@ -247,8 +288,14 @@ export default function Home() {
               </div>
 
               {/* Product 2 */}
-              <div className="w-72 flex-shrink-0 snap-center">
-                <Card className="bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:translate-y-[-8px]">
+              <div ref={(el) => (productRefs.current[1] = el)} className="w-72 flex-shrink-0 snap-center">
+                <Card
+                  className={`bg-white/80 backdrop-blur-sm transition-all duration-300 overflow-hidden ${
+                    activeProductIndex === 1
+                      ? "transform scale-105 shadow-2xl z-10"
+                      : "transform scale-95 opacity-80 shadow-xl"
+                  }`}
+                >
                   <div className="relative h-64">
                     <img
                       src="/1.5withoutBG.png"
@@ -259,12 +306,13 @@ export default function Home() {
                   <CardContent className="p-6">
                     <h3 className="text-xl font-semibold text-sky-800 mb-2">Rehydr8 1.5L</h3>
                     <p className="text-sky-600 mb-4">
-                      Naturally carbonated mineral water with a refreshing fizz. Available in bigger packaging with more refreshment.
+                      Naturally carbonated mineral water with a refreshing fizz. Available in bigger packaging with more
+                      refreshment.
                     </p>
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-bold text-sky-900">Rs. 100</span>
                       <a
-                        href="https://wa.me/923167844720?text=Hi%2C%20I%20would%20like%20to%20order%20Rehydr8%201.5L"
+                        href="https://wa.me/923159777509?text=Hi%2C%20I%20would%20like%20to%20order%20Rehydr8%201.5L"
                         target="_blank"
                         rel="noopener noreferrer"
                       >
@@ -278,19 +326,22 @@ export default function Home() {
               </div>
 
               {/* Product 3 */}
-              <div className="w-72 flex-shrink-0 snap-center">
-                <Card className="bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:translate-y-[-8px]">
+              <div ref={(el) => (productRefs.current[2] = el)} className="w-72 flex-shrink-0 snap-center">
+                <Card
+                  className={`bg-white/80 backdrop-blur-sm transition-all duration-300 overflow-hidden ${
+                    activeProductIndex === 2
+                      ? "transform scale-105 shadow-2xl z-10"
+                      : "transform scale-95 opacity-80 shadow-xl"
+                  }`}
+                >
                   <div className="relative h-64">
-                    <img
-                      src="/medicineBottles.jpg"
-                      alt="Alkaline Water"
-                      className="w-full h-full object-contain"
-                    />
+                    <img src="/medicineBottles.jpg" alt="Alkaline Water" className="w-full h-full object-contain" />
                   </div>
                   <CardContent className="p-6">
                     <h3 className="text-xl font-semibold text-sky-800 mb-2">Medicine Bottles</h3>
                     <p className="text-sky-600 mb-4">
-                      Nova Beverages now offer bottle manufacturing too. You will decide the size, we will ensure quality.
+                      Nova Beverages now offer bottle manufacturing too. You will decide the size, we will ensure
+                      quality.
                     </p>
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-bold text-sky-900">$2.99</span>
@@ -307,40 +358,20 @@ export default function Home() {
                   </CardContent>
                 </Card>
               </div>
-
-              {/* Product 4 */}
-              {/* <div className="w-72 flex-shrink-0 snap-center">
-                <Card className="bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:translate-y-[-8px]">
-                  <div className="relative h-64">
-                    <img
-                      src="/placeholder.svg?height=400&width=400"
-                      alt="Flavored Water"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <CardContent className="p-6">
-                    <h3 className="text-xl font-semibold text-sky-800 mb-2">Flavored Water</h3>
-                    <p className="text-sky-600 mb-4">
-                      Naturally flavored water with hints of fruit. Zero calories and zero sugar.
-                    </p>
-                    <div className="flex justify-between items-center">
-                      <span className="text-lg font-bold text-sky-900">$2.29</span>
-                      <Button className="bg-sky-600 hover:bg-sky-700 transition-transform hover:scale-105">
-                        Order Now
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div> */}
             </div>
 
             {/* Scroll indicator for mobile */}
             <div className="flex justify-center mt-6">
               <div className="flex gap-2">
-                <div className="w-2 h-2 rounded-full bg-sky-300"></div>
-                <div className="w-2 h-2 rounded-full bg-sky-300"></div>
-                <div className="w-2 h-2 rounded-full bg-sky-300"></div>
-                <div className="w-2 h-2 rounded-full bg-sky-300"></div>
+                <div
+                  className={`w-2 h-2 rounded-full transition-colors duration-300 ${activeProductIndex === 0 ? "bg-sky-600" : "bg-sky-300"}`}
+                ></div>
+                <div
+                  className={`w-2 h-2 rounded-full transition-colors duration-300 ${activeProductIndex === 1 ? "bg-sky-600" : "bg-sky-300"}`}
+                ></div>
+                <div
+                  className={`w-2 h-2 rounded-full transition-colors duration-300 ${activeProductIndex === 2 ? "bg-sky-600" : "bg-sky-300"}`}
+                ></div>
               </div>
             </div>
           </div>
@@ -350,16 +381,13 @@ export default function Home() {
             {/* Product 1 */}
             <Card className="bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:translate-y-[-8px]">
               <div className="relative h-64">
-                <img
-                  src="/500mithoutBG.png"
-                  alt="Natural Spring Water"
-                  className="w-full h-full object-contain"
-                />
+                <img src="/500mithoutBG.png" alt="Natural Spring Water" className="w-full h-full object-contain" />
               </div>
               <CardContent className="p-6">
                 <h3 className="text-xl font-semibold text-sky-800 mb-2">Rehydr8 500 ml</h3>
                 <p className="text-sky-600 mb-4">
-                  Our specialized water in 500 ml packing, sourced from pristine mountain springs. Perfect for everyday hydration.
+                  Our specialized water in 500 ml packing, sourced from pristine mountain springs. Perfect for everyday
+                  hydration.
                 </p>
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-bold text-sky-900">Rs. 50</span>
@@ -379,21 +407,18 @@ export default function Home() {
             {/* Product 2 */}
             <Card className="bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:translate-y-[-8px]">
               <div className="relative h-64">
-                <img
-                  src="/1.5withoutBG.png"
-                  alt="Sparkling Mineral Water"
-                  className="w-full h-full object-contain"
-                />
+                <img src="/1.5withoutBG.png" alt="Sparkling Mineral Water" className="w-full h-full object-contain" />
               </div>
               <CardContent className="p-6">
                 <h3 className="text-xl font-semibold text-sky-800 mb-2">Rehydr8 1.5L</h3>
                 <p className="text-sky-600 mb-4">
-                  Naturally carbonated mineral water with a refreshing fizz. Available in bigger packaging with more refreshment.
+                  Naturally carbonated mineral water with a refreshing fizz. Available in bigger packaging with more
+                  refreshment.
                 </p>
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-bold text-sky-900">Rs. 100</span>
                   <a
-                    href="https://wa.me/923159777509?text=Hi%2C%20Hafeez%20would%20like%20to%20order%20Rehydr8%201.5L"
+                    href="https://wa.me/923159777509?text=Hi%2C%20I%20would%20like%20to%20order%20Rehydr8%201.5L"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -408,11 +433,7 @@ export default function Home() {
             {/* Product 3 */}
             <Card className="bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:translate-y-[-8px]">
               <div className="relative h-64">
-                <img
-                  src="/medicineBottles.jpg"
-                  alt="Alkaline Water"
-                  className="w-full h-full object-contain"
-                />
+                <img src="/medicineBottles.jpg" alt="Alkaline Water" className="w-full h-full object-contain" />
               </div>
               <CardContent className="p-6">
                 <h3 className="text-xl font-semibold text-sky-800 mb-2">Medicine Bottles</h3>
@@ -495,6 +516,23 @@ export default function Home() {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-sky-600 hover:underline"
+                    >
+                      Nova Beverages
+                    </a>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4 cursor-pointer">
+                  <div className="w-10 h-10 bg-sky-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <Facebook className="h-5 w-5 text-sky-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-sky-800">Facebook</h4>
+                    <a
+                      href="https://www.facebook.com/profile.php?id=61573705081907"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline"
                     >
                       Nova Beverages
                     </a>
