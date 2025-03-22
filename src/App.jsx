@@ -532,7 +532,7 @@ export default function Home() {
                       href="https://www.facebook.com/profile.php?id=61573705081907"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline"
+                      className="text-sky-600 hover:underline"
                     >
                       Nova Beverages
                     </a>
